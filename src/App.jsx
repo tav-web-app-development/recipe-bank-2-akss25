@@ -7,29 +7,58 @@ import "./assets/style.css";
 
 function App() {
   const [recipes, setRecipes] = useState([]);
+
   useEffect(() => {
-    fetch("https://api.sampleapis.com/recipes/recipes")
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
+    const fetchRecipes = async () => {
+      try {
+        const response = await fetch("https://api.sampleapis.com/recipes/recipes");
+        if (!response.ok) {
+          throw new Error("Failed to fetch recipes");
+        }
+        const data = await response.json();
         setRecipes(data);
-      });
-    return () => console.log("unmounted");
+      } catch (error) {
+        console.error("Error fetching recipes:", error);
+      }
+    };
+
+    fetchRecipes();
+
+    return () => {
+      console.log("Component unmounted");
+    };
   }, []);
-  function filterRecipesComputeIntensive(recipes) {
-    const now = performance.now();
-    while (performance.now() - now < 8000) {
-      //spin()
-    }
-    return list.filter((word) => word.name.split(" ").length <= 4);
+
+  function handleEdit(index) {
+    const updatedRecipes = [...recipes];
+    updatedRecipes[index].editable = true;
+    setRecipes(updatedRecipes);
   }
-  const filteredRecipes = filterRecipesComputeIntensive(recipes);
+
+  function handleSave(index) {
+    const updatedRecipes = [...recipes];
+    updatedRecipes[index].editable = false;
+    setRecipes(updatedRecipes);
+  }
+
+  function handleDelete(index) {
+    const updatedRecipes = [...recipes];
+    updatedRecipes.splice(index, 1);
+    setRecipes(updatedRecipes);
+  }
+
   return (
     <>
       <Navbar />
-      {recipes.map((data) => (
-        <RecipeContainer recipe={data} key={data.id} />
+      {recipes.map((recipe, index) => (
+        <RecipeContainer
+          recipe={recipe}
+          key={recipe.id}
+          index={index}
+          onEdit={handleEdit}
+          onSave={handleSave}
+          onDelete={handleDelete}
+        />
       ))}
       <Footer />
     </>
